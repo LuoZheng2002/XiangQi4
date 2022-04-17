@@ -36,3 +36,6 @@ class Library:
             functions.update({file_name[:-4]: pickle.load(file)})
             file.close()
         return functions
+
+    def get_function_code(self, function_name):
+        pass

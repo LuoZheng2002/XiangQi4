@@ -2,41 +2,40 @@ from Exception.dynamic_code_exception import DynamicCodeException, show_dynamic_
 from SystemConcept.concept_manager import summon_concepts
 from XiangQi.instance import create_xq_game
 from XiangQi.chessboard_browser import print_chessboard
-from AGI.code_driver import run_dynamic_code
+from AGI.code_driver import run_dynamic_function
 from AGI.struct import AGIObject, AGIList
-from AGI.objects import obj
+from SystemConcept.common_concepts import tag_obj, to_int
 from AGI.translate_struct import print_obj
 from dynamic_code_manager import DynamicCodeDatabase
 from LibraryDriver.Load.load_library import Library
+
 lib = Library('Library')
 try:
-    xq_game = create_xq_game(cid_of, dcd)
-    current_chessboard = xq_game.attributes[cid_of['tb_game::chessboard']]
+    xq_game = create_xq_game(lib)
+    current_chessboard = xq_game.attributes['tb_game_chessboard']
     while True:
         print('Now chessboard is:')
-        print_chessboard(current_chessboard, cid_of, cid_reverse)
-        whose_turn = run_dynamic_code(cid_of['func::who_is_next_func'],
-                                      AGIList([current_chessboard]), cid_of, cid_reverse, dcd, False)
-        if whose_turn.concept_id == cid_of['xq::red_team']:
+        print_chessboard(current_chessboard)
+        whose_turn = run_dynamic_function('func_who_is_next_func',
+                                          AGIList(True, [current_chessboard]), lib)
+        if whose_turn.concept_name == 'xq_red_team':
             print('Now it\'s red team\'s turn to go!')
-        elif whose_turn.concept_id == cid_of['xq::black_team']:
+        elif whose_turn.concept_name == 'xq_black_team':
             print('Now it\'s black team\'s turn to go!')
-        current_chessboard = run_dynamic_code(cid_of['func::operation_func'],
-                                              AGIList([current_chessboard, whose_turn]), cid_of, cid_reverse, dcd, False)
-        end_game = run_dynamic_code(cid_of['func::end_game_func'],
-                                    AGIList([current_chessboard]), cid_of, cid_reverse, dcd)
-        if end_game.concept_id == cid_of['True']:
-            print_chessboard(current_chessboard, cid_of, cid_reverse)
+        current_chessboard = run_dynamic_function('func_operation_func',
+                                                  AGIList(True, [current_chessboard, whose_turn]), lib)
+        end_game = run_dynamic_function('func_end_game_func', AGIList(True, [current_chessboard]), lib)
+        if end_game.concept_name == 'True':
+            print_chessboard(current_chessboard)
             print('Game ended!')
-            red_benefit = run_dynamic_code(cid_of['func::end_game_benefit'],
-                                           AGIList([current_chessboard, obj('xq::red_team', cid_of)]), cid_of, dcd)
-            black_benefit = run_dynamic_code(cid_of['func::end_game_benefit'],
-                                             AGIList([current_chessboard,
-                                                      obj('xq::black_team', cid_of)]), cid_of, dcd)
+            red_benefit = run_dynamic_function('func_end_game_benefit',
+                                               AGIList(True, [current_chessboard, tag_obj('xq_red_team')]), lib)
+            black_benefit = run_dynamic_function('func_end_game_benefit',
+                                                 AGIList(True, [current_chessboard, tag_obj('xq_black_team')]), lib)
             print('Red team\'s benefit is:')
-            print_obj(red_benefit, cid_reverse)
+            to_int(red_benefit)
             print('Black team\'s benefit is:')
-            print_obj(black_benefit, cid_reverse)
+            to_int(black_benefit)
             break
 except DynamicCodeException as d:
-    show_dynamic_code_exception(d, cid_of, cid_reverse)
+    show_dynamic_code_exception(d, 'Library')

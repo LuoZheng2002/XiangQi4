@@ -4,7 +4,7 @@ from Exception.dynamic_code_exception import DynamicCodeException, show_dynamic_
 from SystemConcept.concept_manager import summon_concepts
 from XiangQi.instance import create_xq_game
 from XiangQi.chessboard_browser import print_chessboard
-from AGI.code_driver import run_dynamic_code
+from AGI.code_driver import run_dynamic_function
 from AGI.struct import AGIObject, AGIList
 from AGI.objects import obj
 from AGI.translate_struct import print_obj

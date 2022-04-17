@@ -1,7 +1,6 @@
-from AGI.code_browser import translate_code
 from AGI.struct import AGIObject, AGIList
 import traceback
-
+from Decode.decode_functions import print_code_default
 
 class HardcodedExceptionInfo:
     def __init__(self, function_name):
@@ -41,7 +40,7 @@ def translate_exception_AGIList(agi_list: AGIList, cid_of, cid_reverse, indentat
     if attribute_name != '':
         result += "'" + attribute_name + "': "
     result += 'AGIList\n'
-    if agi_list.size() > 0 and type(agi_list.get_element(0)) == AGIObject and agi_list.get_element(0).concept_id == cid_of['xq::piece']:
+    if agi_list.size() > 0 and type(agi_list.get_element(0)) == AGIObject and agi_list.get_element(0).concept_name == cid_of['xq::piece']:
         result += 'Some xq::piece s.\n'
     else:
         for i in agi_list.value:
@@ -64,12 +63,12 @@ def translate_exception_AGIObject(agi_object: AGIObject, cid_of, cid_reverse, in
         result += '|   '
     if attribute_name != '':
         result += "'" + attribute_name + "': "
-    result += "'" + cid_reverse[agi_object.concept_id] + "'\n"
-    if agi_object.concept_id == cid_of['xq::chessboard']:
+    result += "'" + cid_reverse[agi_object.concept_name] + "'\n"
+    if agi_object.concept_name == cid_of['xq::chessboard']:
         result += 'A chessboard.\n'
-    elif agi_object.concept_id == cid_of['xq::pieces']:
+    elif agi_object.concept_name == cid_of['xq::pieces']:
         result += 'Some pieces.\n'
-    elif agi_object.concept_id == cid_of['dynamic_code']:
+    elif agi_object.concept_name == cid_of['dynamic_code']:
         result += 'A dynamic code.\n'
     else:
         for i in agi_object.attributes:
@@ -97,15 +96,15 @@ def print_exception_obj(target: AGIObject or AGIList, cid_of, cid_reverse):
         assert False
 
 
-def show_dynamic_code_exception(dce: DynamicCodeException, cid_of, cid_reverse):
+def show_dynamic_code_exception(dce: DynamicCodeException, function_directory):
     print('Dynamic Code Exception Triggered!')
     print(dce.description)
     for process in dce.call_stacks:
         if type(process) == DynamicExceptionInfo:
-            print('Process: \'' + cid_reverse[process.code_id] + "'")
+            print('Process: \'' + process.function_name + "'")
             print('The problematic line is: ' + str(process.line))
             print('The code is:')
-            translate_code(process.code_id, cid_of, cid_reverse)
+            print_code_default(function_directory, process.function_name)
             print()
         elif type(process) == HardcodedExceptionInfo:
             print('Hardcoded Process: ' + process.function_name)

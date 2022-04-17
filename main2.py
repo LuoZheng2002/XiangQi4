@@ -2,7 +2,7 @@ from Exception.dynamic_code_exception import DynamicCodeException, show_dynamic_
 from SystemConcept.concept_manager import summon_concepts
 from XiangQi.instance import create_xq_game
 from XiangQi.chessboard_browser import print_chessboard
-from AGI.code_driver import run_dynamic_code
+from AGI.code_driver import run_dynamic_function
 from AGI.struct import AGIObject, AGIList
 from AGI.objects import obj
 from AGI.translate_struct import print_obj
@@ -19,25 +19,25 @@ try:
     while True:
         print('Now chessboard is:')
         print_chessboard(current_chessboard, cid_of, cid_reverse)
-        whose_turn = run_dynamic_code(cid_of['func::who_is_next_func'], AGIList([current_chessboard]), cid_of, cid_reverse, dcd)
+        whose_turn = run_dynamic_function(cid_of['func::who_is_next_func'], AGIList([current_chessboard]), cid_of, cid_reverse, dcd)
         if whose_turn.concept_id == cid_of['xq::red_team']:
             print('Now it\'s red team\'s turn to go!')
         elif whose_turn.concept_id == cid_of['xq::black_team']:
             print('Now it\'s black team\'s turn to go!')
-        chessboard = run_dynamic_code(cid_of['func::run_dynamic_code_object'],
-                                      AGIList([dcd.get_code(cid_of['func::operation_func']),
+        chessboard = run_dynamic_function(cid_of['func::run_dynamic_code_object'],
+                                          AGIList([dcd.get_code(cid_of['func::operation_func']),
                                                AGIList([current_chessboard, whose_turn])]), cid_of, cid_reverse, dcd)
         # print_obj(chessboard, cid_reverse)
         # break
         current_chessboard = deepcopy(chessboard)
-        end_game = run_dynamic_code(cid_of['func::end_game_func'], AGIList([current_chessboard]), cid_of, cid_reverse, dcd)
+        end_game = run_dynamic_function(cid_of['func::end_game_func'], AGIList([current_chessboard]), cid_of, cid_reverse, dcd)
         if end_game.concept_id == cid_of['True']:
             print_chessboard(current_chessboard, cid_of, cid_reverse)
             print('Game ended!')
-            red_benefit = run_dynamic_code(cid_of['func::end_game_benefit'],
-                                           AGIList([current_chessboard, obj('xq::red_team', cid_of)]), cid_of, cid_reverse, dcd)
-            black_benefit = run_dynamic_code(cid_of['func::end_game_benefit'],
-                                             AGIList([current_chessboard,
+            red_benefit = run_dynamic_function(cid_of['func::end_game_benefit'],
+                                               AGIList([current_chessboard, obj('xq::red_team', cid_of)]), cid_of, cid_reverse, dcd)
+            black_benefit = run_dynamic_function(cid_of['func::end_game_benefit'],
+                                                 AGIList([current_chessboard,
                                                       obj('xq::black_team', cid_of)]), cid_of, cid_reverse, dcd)
             print('Red team\'s benefit is:')
             print_obj(red_benefit, cid_reverse)

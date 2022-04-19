@@ -1,5 +1,4 @@
 import pickle
-from LibraryDriver.struct import Function
 
 from AGI.struct import AGIObject, AGIList
 from Exception.agi_exception import AGIException
@@ -184,6 +183,7 @@ def find_naked_symbol(line_pieces: list, symbol: str, start_pos: int = None, end
 
 
 def generate_expression(expr: list) -> AGIObject:
+    # print(expr)
     if 'and' in expr and find_naked_symbol(expr, 'and'):
         and_poses = find_naked_symbol(expr, 'and')
         if find_naked_symbol(expr, 'or'):
@@ -400,7 +400,7 @@ def generate_expression(expr: list) -> AGIObject:
         function_name = expr[1]
         function_params = list()
         sub_expr = expr[4:-1]
-        if find_naked_symbol(sub_expr, ','):
+        if expr[4] != ')':
             has_param = True
         else:
             has_param = False
@@ -413,6 +413,32 @@ def generate_expression(expr: list) -> AGIObject:
         return AGIObject('sys_call', False,
                          {'sys_function_name': AGIObject(function_name, False),
                           'sys_function_params': AGIList(False, function_params)})
+    if expr[0] == 'max':
+        assert expr[1] == '('
+        assert expr[-1] == ')'
+        assert ',' in expr
+        sub_expr = expr[2:-1]
+        params = list()
+        while ',' in sub_expr:
+            comma_pos = sub_expr.index(',')
+            params.append(generate_expression(sub_expr[:comma_pos]))
+            sub_expr = sub_expr[comma_pos + 1:]
+        params.append(generate_expression(sub_expr))
+        return AGIObject('sys_max', False,
+                         {'sys_params': AGIList(False, params)})
+    if expr[0] == 'min':
+        assert expr[1] == '('
+        assert expr[-1] == ')'
+        assert ',' in expr
+        sub_expr = expr[2:-1]
+        params = list()
+        while ',' in sub_expr:
+            comma_pos = sub_expr.index(',')
+            params.append(generate_expression(sub_expr[:comma_pos]))
+            sub_expr = sub_expr[comma_pos + 1:]
+        params.append(generate_expression(sub_expr))
+        return AGIObject('sys_min', False,
+                         {'sys_params': AGIList(False, params)})
     if '(' in expr and find_naked_symbol(expr, '('):
         bracket_poses = find_naked_symbol(expr, '(')
         bracket_pos = bracket_poses[0]
@@ -718,11 +744,11 @@ def generate_code(function_code_text):
 
 
 def encode_function(raw_directory, function_name, processed_directory):
-    file = open(raw_directory + '/Functions/FunctionCode/' + function_name + '.txt', 'r')
+    file = open(raw_directory + '/' + function_name + '.txt', 'r')
     function_code_text = file.read()
     file.close()
     function_code = generate_code(function_code_text)
-    file = open(processed_directory + '/Functions/FunctionCode/' + function_name + '.txt', 'wb')
+    file = open(processed_directory + '/' + function_name + '.txt', 'wb')
     pickle.dump(function_code, file)
     file.close()
 

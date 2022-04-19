@@ -32,7 +32,7 @@ def create_xq_chessboard():
         piece_object('xq_red_team', 'xq_Pao', [7, 2]),
         piece_object('xq_red_team', 'xq_Bing', [0, 3]),
         piece_object('xq_red_team', 'xq_Bing', [2, 3]),
-        # piece_object('xq_red_team', 'xq_Bing', [4, 3]),
+        piece_object('xq_red_team', 'xq_Bing', [4, 3]),
         piece_object('xq_red_team', 'xq_Bing', [6, 3]),
         piece_object('xq_red_team', 'xq_Bing', [8, 3]),
         piece_object('xq_black_team', 'xq_Che', [0, 9]),
@@ -48,7 +48,7 @@ def create_xq_chessboard():
         piece_object('xq_black_team', 'xq_Pao', [7, 7]),
         piece_object('xq_black_team', 'xq_Bing', [0, 6]),
         piece_object('xq_black_team', 'xq_Bing', [2, 6]),
-        # piece_object('xq_black_team', 'xq_Bing', [4, 6]),
+        piece_object('xq_black_team', 'xq_Bing', [4, 6]),
         piece_object('xq_black_team', 'xq_Bing', [6, 6]),
         piece_object('xq_black_team', 'xq_Bing', [8, 6]),
     ]
@@ -75,7 +75,7 @@ def create_xq_game(lib):
     occupations = [occupation_object('xq_player_occupation', operation_func)]
     who_is_next_func = lib.get_code('func_who_is_next_func')
     rule = rule_object(AGIList(False, create_xq_teams()), AGIList(False, occupations),
-                       who_is_next_func, obj('xq_red_team'))
+                       who_is_next_func, tag_obj('xq_red_team'))
     end_game_func = lib.get_code('func_end_game_func')
     benefit_func = lib.get_code('func_end_game_benefit')
     end_game_benefits = [end_game_benefit('xq_player_benefit', benefit_func)]

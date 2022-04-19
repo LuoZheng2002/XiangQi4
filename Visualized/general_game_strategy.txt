@@ -1,7 +1,10 @@
-reg0 &= 'func::think_from_how_to_win'(input0)
-if reg0 != 'Fail':
-    return reg0
-reg1 &= 'func::think_from_operation'(input0)
-if reg1 != 'Fail':
-    return reg1
+reg0 &= 'sys_list'
+reg0.append(input0.'tb_game_chessboard')
+reg1 &= 'sys_func_run_function_object'(input0.'tb_game_rule'.'tb_game_who_is_next_func', reg0)
+reg2 &= 'func::think_from_how_to_win'(input0)
+if reg2 != 'Fail':
+    return reg2
+reg3 &= 'func::think_from_operation'(input0)
+if reg3 != 'Fail':
+    return reg3
 return 'Fail'

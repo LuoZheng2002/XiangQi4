@@ -1,0 +1,3 @@
+# 先找到end_game_benefit函数中return值最大的条件
+# 要是return的内容不是常量？暂时不考虑
+# input0: 博弈问题对象

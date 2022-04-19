@@ -1,0 +1,1 @@
+reg0 = 'sys_func_test_dynamic_function'(reg0)

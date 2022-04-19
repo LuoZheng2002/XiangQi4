@@ -1,0 +1,4 @@
+reg0 = input0.'xq_pieces'
+if reg0.count(target.'xq_piece_name' == 'xq_Jiang') === 2:
+    return False
+return True

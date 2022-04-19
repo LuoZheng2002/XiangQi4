@@ -1,0 +1,1 @@
+return input0.'xq_whose_turn'

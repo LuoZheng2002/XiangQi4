@@ -1,0 +1,5 @@
+# input0: end_game_benefit_object
+# input1: whose_turn
+# 可以处理的形式：
+for i in range(input0.size):
+    if input0[i] == 'sys_if':

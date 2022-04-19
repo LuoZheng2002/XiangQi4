@@ -1,5 +1,5 @@
 from AGI.struct import AGIObject, AGIList
-from AGI.objects import obj
+from SystemConcept.common_concepts import tag_obj
 
 
 def game_object(chessboard: AGIObject,
@@ -36,24 +36,24 @@ def winning_criteria_object(end_game_func: AGIObject or None, end_game_benefits:
 
 def team_object(team_name: str, players: AGIList, end_game_benefit_name: str) -> AGIObject:
     return AGIObject('tb_game_team', False,
-                     {'name': obj(team_name),
+                     {'name': tag_obj(team_name),
                       'tb_game_players': players,
-                      'tb_game_end_game_benefit_id': obj(end_game_benefit_name)})
+                      'tb_game_end_game_benefit_id': tag_obj(end_game_benefit_name)})
 
 
 def occupation_object(occupation_name: str, operation_func: AGIObject or None) -> AGIObject:
     return AGIObject('tb_game_occupation', False,
-                     {'name': obj(occupation_name),
+                     {'name': tag_obj(occupation_name),
                       'tb_game_operation_func': operation_func})
 
 
 def end_game_benefit(benefit_name: str, benefit_func: AGIObject or None) -> AGIObject:
     return AGIObject('tb_game_end_game_benefit', False,
-                     {'name': obj(benefit_name),
+                     {'name': tag_obj(benefit_name),
                       'tb_game_benefit_func': benefit_func})
 
 
 def player_object(player_name: str, occupation_name: str) -> AGIObject:
     return AGIObject('tb_game_player', False,
-                     {'name': obj(player_name),
-                      'tb_game_occupation_id': obj(occupation_name)})
+                     {'name': tag_obj(player_name),
+                      'tb_game_occupation_id': tag_obj(occupation_name)})

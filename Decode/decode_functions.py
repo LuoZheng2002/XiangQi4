@@ -1,9 +1,11 @@
 from AGI.struct import AGIObject, AGIList
 from SystemConcept.common_concepts import to_int
 import pickle
-from AGI.code_generator import number_to_letter
-from AGI.translate_struct import print_obj
-from AGI.dynamic_code_getter import get_dynamic_code
+
+
+number_to_letter = {0: 'i', 1: 'j', 2: 'k', 3: 'l', 4: 'm', 5: 'n', 6: 'o', 7: 'p', 8: 'q', 9: 'r',
+                    10: 's', 11: 't', 12: 'u', 13: 'v', 14: 'w', 15: 'x', 16: 'y', 17: 'z'}
+letter_to_number = dict([(i, j) for (j, i) in number_to_letter.items()])
 
 
 class SingleLine:
@@ -29,7 +31,7 @@ def slice_code(code_object: AGIObject, indentation) -> list:
             result += slice_code(line.attributes['sys_if_block'], indentation + 1)
             for elif_module in line.attributes['sys_elif_modules'].value:
                 result.append(SingleLine(translate_line(elif_module),
-                                         indentation, to_int(line.attributes['sys_line_index'])))
+                                         indentation, to_int(elif_module.attributes['sys_line_index'])))
                 result += slice_code(elif_module.attributes['sys_elif_block'], indentation + 1)
             if line.attributes['sys_else_block'].agi_list().size() > 0:
                 result.append(SingleLine(['else:'], indentation, 0))
@@ -191,6 +193,20 @@ def translate_expression(expr: AGIObject) -> str:
         for param in params:
             result += translate_expression(param) + ' - '
         return result[:-4]
+    if expr.concept_name == 'sys_max':
+        result = 'max('
+        params = expr.attributes['sys_params'].value
+        assert len(params) >= 2
+        for param in params:
+            result += translate_expression(param) + ', '
+        return result[:-2] + ')'
+    if expr.concept_name == 'sys_min':
+        result = 'min('
+        params = expr.attributes['sys_params'].value
+        assert len(params) >= 2
+        for param in params:
+            result += translate_expression(param) + ', '
+        return result[:-2] + ')'
     if expr.concept_name == 'sys_negative':
         return '-' + translate_expression(expr.attributes['sys_param'])
     print(expr.concept_name)
@@ -199,7 +215,7 @@ def translate_expression(expr: AGIObject) -> str:
 
 def translate_line(line: AGIObject) -> list:
     if line.concept_name == 'sys_elif_module':
-        result = 'elif' + translate_expression(line.attributes['sys_expression_for_judging']) + ':'
+        result = 'elif ' + translate_expression(line.attributes['sys_expression_for_judging']) + ':'
     elif line.concept_name == 'sys_assign':
         result = translate_expression(line.attributes['sys_left_value']) + ' = ' \
                + translate_expression(line.attributes['sys_right_value'])
@@ -259,7 +275,7 @@ def translate_line(line: AGIObject) -> list:
 
 
 def decode_function(directory, function_name) -> list:
-    file = open(directory + '/Functions/FunctionCode/' + function_name + '.txt', 'rb')
+    file = open(directory + '/' + function_name + '.txt', 'rb')
     code_object = pickle.load(file)
     file.close()
     return slice_code(code_object, 0)

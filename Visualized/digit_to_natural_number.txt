@@ -1,3 +1,0 @@
-reg0 &= 'natural_number'
-reg0[0] &= input0
-return reg0

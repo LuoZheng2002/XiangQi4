@@ -8,8 +8,8 @@ class HardcodedExceptionInfo:
 
 
 class DynamicExceptionInfo:
-    def __init__(self, code_id, input_params, line, runtime_memory):
-        self.code_id = code_id
+    def __init__(self, function_name, input_params, line, runtime_memory):
+        self.function_name = function_name
         self.input_params = input_params
         self.line = line
         self.runtime_memory = runtime_memory
@@ -40,8 +40,8 @@ def translate_exception_AGIList(agi_list: AGIList, cid_of, cid_reverse, indentat
     if attribute_name != '':
         result += "'" + attribute_name + "': "
     result += 'AGIList\n'
-    if agi_list.size() > 0 and type(agi_list.get_element(0)) == AGIObject and agi_list.get_element(0).concept_name == cid_of['xq::piece']:
-        result += 'Some xq::piece s.\n'
+    if agi_list.size() > 0 and type(agi_list.get_element(0)) == AGIObject and agi_list.get_element(0).concept_name == cid_of['xq_piece']:
+        result += 'Some xq_piece s.\n'
     else:
         for i in agi_list.value:
             if type(i) == AGIObject:
@@ -64,9 +64,9 @@ def translate_exception_AGIObject(agi_object: AGIObject, cid_of, cid_reverse, in
     if attribute_name != '':
         result += "'" + attribute_name + "': "
     result += "'" + cid_reverse[agi_object.concept_name] + "'\n"
-    if agi_object.concept_name == cid_of['xq::chessboard']:
+    if agi_object.concept_name == cid_of['xq_chessboard']:
         result += 'A chessboard.\n'
-    elif agi_object.concept_name == cid_of['xq::pieces']:
+    elif agi_object.concept_name == cid_of['xq_pieces']:
         result += 'Some pieces.\n'
     elif agi_object.concept_name == cid_of['dynamic_code']:
         result += 'A dynamic code.\n'

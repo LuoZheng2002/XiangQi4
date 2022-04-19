@@ -4,14 +4,13 @@ from copy import deepcopy
 from Exception.dynamic_code_exception import DynamicCodeException, LineException, DynamicExceptionInfo, \
     HardcodedExceptionInfo, ExpressionException
 from Exception.hardcoded_code_exception import HardcodedCodeException
-from AGI.concept_instance_creator import create_concept_instance
-from SystemFunction.code_simulator import get_dynamic_code_object
 from AGI.dynamic_code_debugger import Debugger, global_given_line, global_given_function
 from debug import debug_dynamic_code
 from SystemFunction.system_function_dict import system_function_dict
 from SystemConcept.common_concepts import to_int, int_obj, bool_obj
 from Exception.structure_exception import StructureException
-
+from SystemConcept.system_concepts import system_concepts
+from Decode.decode_functions import translate_expression
 
 def run_system_function(function_name, input_params: AGIList):
     return system_function_dict[function_name](input_params)
@@ -28,7 +27,7 @@ class LineSignal:
 def find_element(target_list: AGIList, expr, runtime_memory, lib, debugger) -> int:
     assert type(target_list) == AGIList
     for i, element in enumerate(target_list.value):
-        if solve_expression(expr, runtime_memory, lib, debugger, element).concept_name == 'True':
+        if solve_expression(expr, runtime_memory, lib, debugger, element).concept_name == 'sys_True':
             return i
     return -1
 
@@ -79,7 +78,17 @@ def solve_expression(expr: AGIObject, runtime_memory: RuntimeMemory, lib, debugg
                 raise
         return result
     if expr.concept_name == 'sys_concept_instance':
-        return create_concept_instance(expr.attributes['sys_concept_name'].concept_name, lib)
+        attributes = dict()
+        concept_name = expr.attributes['sys_concept_name'].concept_name
+        if concept_name in system_concepts:
+            if concept_name == 'sys_list':
+                return AGIObject('sys_list', True, {'sys_value': None})
+            return AGIObject(concept_name, True)
+        if concept_name not in lib.concepts.keys():
+            assert False, concept_name
+        for attribute_name in lib.concepts[concept_name].instance_attributes:
+            attributes.update({attribute_name: None})
+        return AGIObject(concept_name, True, attributes)
     if expr.concept_name == 'sys_size':
         target_list = solve_expression(expr.attributes['sys_target_list'],
                                        runtime_memory, lib, debugger, target)
@@ -116,32 +125,39 @@ def solve_expression(expr: AGIObject, runtime_memory: RuntimeMemory, lib, debugg
         count = 0
         for element in target_list.value:
             if solve_expression(expr.attributes['sys_expression_for_constraint'],
-                                runtime_memory, lib, debugger, element).concept_name == 'True':
+                                runtime_memory, lib, debugger, element).concept_name == 'sys_True':
                 if expr.concept_name == 'sys_find':
                     return element
                 if expr.concept_name == 'sys_exist':
-                    return AGIObject('True')
+                    return AGIObject('sys_True')
                 count += 1
         if expr.concept_name == 'sys_find':
             raise ExpressionException('Can not find the target element!')
         if expr.concept_name == 'sys_exist':
-            return AGIObject('False')
+            return bool_obj(False)
         return int_obj(count)
     if expr.concept_name == 'sys_target':
         assert target is not None
         return target
     if expr.concept_name == 'sys_constexpr':
-        return expr.attributes['value']
+        return expr.attributes['sys_value']
     if expr.concept_name == 'sys_and':
         params = expr.attributes['sys_params'].value
         param_results = list()
+        found_false = False
         for param in params:
             result = solve_expression(param, runtime_memory, lib, debugger, target)
             if result.concept_name != 'sys_True' and result.concept_name != 'sys_False':
+                print(result.concept_name)
                 raise ExpressionException('The params in and operation is not boolean.')
             if result.concept_name == 'sys_False':
-                return bool_obj(False)
+                found_false = True
+        if found_false:
+            # print(translate_expression(expr) + ' is False.')
+            return bool_obj(False)
+        # print(translate_expression(expr) + ' is True.')
         return bool_obj(True)
+
     if expr.concept_name == 'sys_or':
         params = expr.attributes['sys_params'].value
         for param in params:
@@ -237,6 +253,49 @@ def solve_expression(expr: AGIObject, runtime_memory: RuntimeMemory, lib, debugg
         if param1.sys_value <= param2.sys_value:
             return bool_obj(True)
         return bool_obj(False)
+    if expr.concept_name == 'sys_plus':
+        params = expr.attributes['sys_params'].value
+        number = 0
+        for param in params:
+            result = solve_expression(param, runtime_memory, lib, debugger, target)
+            assert type(result) == AGIObject
+            assert result.concept_name == 'sys_integer'
+            number += result.sys_value
+        return int_obj(number)
+    if expr.concept_name == 'sys_minus':
+        params = expr.attributes['sys_params'].value
+        assert len(params) == 2
+        param1 = solve_expression(params[0], runtime_memory, lib, debugger, target)
+        param2 = solve_expression(params[1], runtime_memory, lib, debugger, target)
+        assert param1.concept_name == 'sys_integer' and param2.concept_name == 'sys_integer'
+        number = param1.sys_value - param2.sys_value
+        return int_obj(number)
+    if expr.concept_name == 'sys_max':
+        params = expr.attributes['sys_params'].value
+        number = None
+        for param in params:
+            result = solve_expression(param, runtime_memory, lib, debugger, target)
+            assert type(result) == AGIObject
+            assert result.concept_name == 'sys_integer'
+            if number is None:
+                number = result.sys_value
+            else:
+                if result.sys_value > number:
+                    number = result.sys_value
+        return int_obj(number)
+    if expr.concept_name == 'sys_min':
+        params = expr.attributes['sys_params'].value
+        number = None
+        for param in params:
+            result = solve_expression(param, runtime_memory, lib, debugger, target)
+            assert type(result) == AGIObject
+            assert result.concept_name == 'sys_integer'
+            if number is None:
+                number = result.sys_value
+            else:
+                if result.sys_value < number:
+                    number = result.sys_value
+        return int_obj(number)
     print(expr.concept_name)
     raise ExpressionException('Unknown head of expression!')
 
@@ -299,7 +358,7 @@ def process_line(line: AGIObject, runtime_memory: RuntimeMemory, lib, debugger: 
         if line.concept_name == 'sys_assert':
             assert_expression = solve_expression(line.attributes['sys_assert_expression'],
                                                  runtime_memory, lib, debugger)
-            if assert_expression.concept_name != 'True':
+            if assert_expression.concept_name != 'sys_True':
                 raise LineException(to_int(line.attributes['sys_line_index']),
                                     'Assertion Failed in Dynamic Code.')
             return LineSignal('normal')
@@ -331,7 +390,7 @@ def process_line(line: AGIObject, runtime_memory: RuntimeMemory, lib, debugger: 
         if line.concept_name == 'sys_while':
             loop_count = 0
             while solve_expression(line.attributes['sys_expression_for_judging'],
-                                   runtime_memory, lib, debugger).concept_name == 'True':
+                                   runtime_memory, lib, debugger).concept_name == 'sys_True':
                 loop_count += 1
                 for while_line in line.attributes['sys_while_block'].agi_list().value:
                     try:
@@ -354,7 +413,7 @@ def process_line(line: AGIObject, runtime_memory: RuntimeMemory, lib, debugger: 
         if line.concept_name == 'sys_if':
             expression_for_judging = solve_expression(line.attributes['sys_expression_for_judging'],
                                                       runtime_memory, lib, debugger)
-            if expression_for_judging.concept_name == 'True':
+            if expression_for_judging.concept_name == 'sys_True':
                 for if_line in line.attributes['sys_if_block'].agi_list().value:
                     try:
                         line_signal = process_line(if_line, runtime_memory, lib, debugger)
@@ -372,7 +431,7 @@ def process_line(line: AGIObject, runtime_memory: RuntimeMemory, lib, debugger: 
                 for elif_module in line.attributes['sys_elif_modules'].value:
                     elif_expression = solve_expression(elif_module.attributes['sys_expression_for_judging'],
                                                        runtime_memory, lib, debugger)
-                    if elif_expression.concept_name == 'True':
+                    if elif_expression.concept_name == 'sys_True':
                         for elif_line in elif_module.attributes['sys_elif_block'].agi_list().value:
                             try:
                                 line_signal = process_line(elif_line, runtime_memory, lib,
@@ -450,10 +509,12 @@ def process_line(line: AGIObject, runtime_memory: RuntimeMemory, lib, debugger: 
                 assert line_signal.signal_type != 'break'
                 if line_signal.signal_type == 'return':
                     return line_signal
-            if solve_expression(line.attributes['sys_expression_for_constraint'],
-                                runtime_memory, lib, debugger).concept_name != 'True':
+            bool_result = solve_expression(line.attributes['sys_expression_for_constraint'],
+                                      runtime_memory, lib, debugger).concept_name
+            if bool_result != 'sys_True':
+                assert bool_result == 'sys_False'
                 raise LineException(to_int(line.attributes['sys_line_index']),
-                                    'Your inputs do not satisfy the constraints.')
+                                'Your inputs do not satisfy the constraints.')
             return LineSignal('normal')
         if line.concept_name == 'sys_call_none_return_func':
             function_name = line.attributes['sys_function_name'].concept_name
@@ -473,7 +534,7 @@ def process_line(line: AGIObject, runtime_memory: RuntimeMemory, lib, debugger: 
                     raise
             else:
                 try:
-                    if function_name == 'sys_func_test_dynamic_function':
+                    if function_name == 'sys_func_run_function_object':
                         function_object = function_params.get_element(0)
                         test_function_params = function_params.get_element(1)
                         if type(test_function_params) == AGIObject:
@@ -505,7 +566,8 @@ def process_line(line: AGIObject, runtime_memory: RuntimeMemory, lib, debugger: 
         raise
 
 
-def run_dynamic_function(function_name_or_object: str or AGIObject, input_params: AGIList, lib, nDebug=False) -> AGIObject:
+def run_dynamic_function(function_name_or_object: str or AGIObject, input_params: AGIList, lib,
+                         nDebug=False) -> AGIObject:
     if type(function_name_or_object) == str:
         function_object = lib.get_code(function_name_or_object)
     else:
@@ -523,22 +585,17 @@ def run_dynamic_function(function_name_or_object: str or AGIObject, input_params
             raise DynamicCodeException(DynamicExceptionInfo(function_name_or_object,
                                                             input_params.value, l.line, runtime_memory), l.description)
         except DynamicCodeException as d:
-            d.call_stacks.append(DynamicExceptionInfo(function_name_or_object, input_params.value, d.line_cache, runtime_memory))
+            d.call_stacks.append(
+                DynamicExceptionInfo(function_name_or_object, input_params.value, d.line_cache, runtime_memory))
             d.line_cache = None
             raise
         except HardcodedCodeException as h:
             d = DynamicCodeException(HardcodedExceptionInfo(h.function_name), h.description)
-            d.call_stacks.append(DynamicExceptionInfo(function_name_or_object, input_params.value, h.line, runtime_memory))
+            d.call_stacks.append(
+                DynamicExceptionInfo(function_name_or_object, input_params.value, h.line, runtime_memory))
             raise d
         assert line_signal.signal_type != 'break'
         if line_signal.signal_type == 'return':
             return line_signal.signal_value
     return AGIObject('sys_None', True)
 
-
-def test_dynamic_function(params: AGIList):
-    function_object = params.get_element(0)
-    function_params = params.get_element(1)
-    if type(function_params) == AGIObject:
-        function_params= function_params.agi_list()
-    return run_dynamic_function(function_object, function_params)

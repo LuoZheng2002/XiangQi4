@@ -1,5 +1,4 @@
 from AGI.struct import AGIObject, AGIList
-from AGI.code_browser import translate_expression, number_to_letter
 from SystemConcept.common_concepts import to_int
 from AGI.runtime_memory import RuntimeMemory
 from Decode.decode_functions import slice_code
@@ -8,75 +7,6 @@ global_given_line = [0]
 global_given_function = ['some string']
 
 
-def translate_dynamic_code_line(line):
-    if line.concept_name == 'dcr::assign' or line.concept_name == 'dcr::assign_as_reference':
-        if line.concept_name == 'dcr::assign':
-            sign = ' = '
-        else:
-            sign = ' &= '
-        result = translate_expression(line.attributes['dc::left_value']) + sign + translate_expression(
-            line.attributes['dc::right_value'])
-        return result
-    if line.concept_name == 'dcr::return':
-        result = 'return ' + translate_expression(line.attributes['dc::return_value'])
-        return result
-    if line.concept_name == 'dcr::assert':
-        result = 'assert ' + translate_expression(line.attributes['dc::assert_expression'])
-        return result
-    if line.concept_name == 'dcr::for':
-        iter_index = to_int(line.attributes['dc::iterator_index'])
-        if iter_index in number_to_letter.keys():
-            iterator_name = number_to_letter[iter_index]
-        else:
-            iterator_name = 'iter' + str(iter_index)
-        end_value = translate_expression(line.attributes['dc::end_value'],
-                                         )
-        result = 'for ' + iterator_name + ' in range(' + end_value + '):'
-        return result
-    if line.concept_name == 'dcr::while':
-        expression_for_judging = translate_expression(line.attributes['dc::expression_for_judging'])
-        result = 'while ' + expression_for_judging + ':'
-        return result
-    if line.concept_name == 'dcr::break':
-        result = 'break'
-        return result
-    if line.concept_name == 'dcr::if':
-        expression_for_judging = translate_expression(line.attributes['dc::expression_for_judging'])
-        result = 'if ' + expression_for_judging + ':'
-        return result
-    if line.concept_name == 'dcr::append' or line.concept_name == 'dcr::remove':
-        target_list = translate_expression(line.attributes['dc::target_list'],
-                                           )
-        if line.concept_name == 'dcr::append':
-            element = translate_expression(line.attributes['dc::element'])
-            word = '.append('
-        else:
-            element = translate_expression(line.attributes['dc::expression_for_constraint'])
-            word = '.remove('
-        result = target_list + word + element + ')'
-        return result
-    if line.concept_name == 'dcr::request':
-        result = 'request '
-        assert type(line.attributes['dc::requested_registers']) == AGIList
-        for reg_id in line.attributes['dc::requested_registers'].value:
-            result += 'reg' + str(to_int(reg_id)) + ', '
-        result += 's.t.{'
-        result += translate_expression(line.attributes['dc::expression_for_constraint'])
-        result += '}, provided:'
-        return result
-    if line.concept_name == 'dcr::call_none_return_func':
-        result = "'" + line.attributes['dc::function_name'].concept_name + "'("
-        function_params = line.attributes['dc::function_params'].value
-        for function_param in function_params:
-            result += translate_expression(function_param) + ', '
-        if function_params:
-            result = result[:-2]
-        result += ')'
-        return result
-    if line.concept_name == 'dc::elif_module':
-        result = 'elif ' + translate_expression(line.attributes['dc::expression_for_judging']) + ':'
-        return result
-    assert False
 
 
 class Line:
@@ -104,27 +34,28 @@ class Debugger:
             start_pos = line_index - radius
             end_pos = line_index + radius + 1
         for i in range(start_pos, end_pos):
-            single_line = self.sliced_code[i - 1]
-            for j, line in enumerate(single_line.lines):
-                line_str = str()
-                if j == 0:
-                    if i == line_index:
-                        line_str += '->'
+            if 1 <= i <= len(self.sliced_code):
+                single_line = self.sliced_code[i - 1]
+                for j, line in enumerate(single_line.lines):
+                    line_str = str()
+                    if j == 0:
+                        if i == line_index:
+                            line_str += '->'
+                        else:
+                            line_str += '  '
+                        if single_line.line_index == 0:
+                            line_str += '        '
+                        else:
+                            line_str += str(single_line.line_index).ljust(8, ' ')
                     else:
                         line_str += '  '
-                    if single_line.line_index == 0:
                         line_str += '        '
-                    else:
-                        line_str += str(single_line.line_index).ljust(8, ' ')
-                else:
-                    line_str += '  '
-                    line_str += '        '
-                for h in range(single_line.indentation):
-                    line_str += '    '
-                if j != 0:
-                    line_str += '        '
-                line_str += line
-                print(line_str)
+                    for h in range(single_line.indentation):
+                        line_str += '    '
+                    if j != 0:
+                        line_str += '        '
+                    line_str += line
+                    print(line_str)
 
     def get_debug_input(self):
         while True:
@@ -225,7 +156,7 @@ def translate_debug_AGIObject(target, indentation, attribute_name):
     elif target.concept_name == 'xq::pieces':
         result += 'Some pieces.\n'
     elif target.concept_name in line_concepts:
-        result += translate_dynamic_code_line(target) + '\n'
+        result += 'a dynamic function line' + '\n'
     else:
         for i in target.attributes:
             if type(target.attributes[i]) == AGIObject:

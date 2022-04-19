@@ -1,6 +1,0 @@
-assert input0 == 'natural_number'
-assert input1 == 'natural_number'
-reg0 = input0
-input0.remove(True)
-reg1 &= reg0 + input1
-    input0.'content' &= reg1.'content'

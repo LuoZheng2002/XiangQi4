@@ -1,0 +1,3 @@
+if input0.'xq_pieces'.exist((target.'xq_piece_owner' != input1 and target.'xq_piece_name' == 'xq_Jiang')):
+    return 0
+return 1

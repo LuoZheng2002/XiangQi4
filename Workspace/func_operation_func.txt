@@ -1,0 +1,122 @@
+assert input1 == input0.'xq_whose_turn'
+reg0 = input0
+reg1 &= reg0.'xq_pieces'
+request reg2, reg3, s.t.{reg4}, provided:
+    reg4 &= reg2 == 'sys_integer'\
+        and reg3 == 'sys_integer'\
+        and reg2 >= 0\
+        and reg2 <= 8\
+        and reg3 >= 0\
+        and reg3 <= 9\
+        and reg1.exist(target.'xq_position'[0] === reg2 and target.'xq_position'[1] === reg3)\
+        and reg1.find(target.'xq_position'[0] === reg2 and target.'xq_position'[1] === reg3).'xq_piece_owner' == input1
+reg5 &= reg1.find((target.'xq_position'[0] === reg2 and target.'xq_position'[1] === reg3))
+if reg5.'xq_piece_name' == 'xq_Che':
+    request reg6, reg7, s.t.{reg8}, provided:
+        reg8 &= reg6 == 'sys_integer'\
+            and reg7 == 'sys_integer'\
+            and reg6 >= 0\
+            and reg6 <= 8\
+            and reg7 >= 0\
+            and reg7 <= 9\
+            and ((reg6 === reg2 and reg7 =!= reg3 and not reg1.exist(target.'xq_position'[0] === reg2 and target.'xq_position'[1] > min(reg7, reg3) and target.'xq_position'[1] < max(reg7, reg3)))\
+              or (reg7 === reg3 and reg6 =!= reg2 and not reg1.exist(target.'xq_position'[1] === reg3 and target.'xq_position'[0] > min(reg6, reg2) and target.'xq_position'[0] < max(reg6, reg2))))\
+            and not reg1.exist(target.'xq_piece_owner' == input1 and target.'xq_position'[0] === reg6 and target.'xq_position'[1] === reg7)
+elif reg5.'xq_piece_name' == 'xq_Ma':
+    request reg6, reg7, s.t.{reg8}, provided:
+        reg8 &= reg6 == 'sys_integer'\
+            and reg7 == 'sys_integer'\
+            and reg6 >= 0\
+            and reg6 <= 8\
+            and reg7 >= 0\
+            and reg7 <= 9\
+            and ((reg6 === reg2 + 1 and reg7 === reg3 + 2 and not reg1.exist(target.'xq_position'[0] === reg2 and target.'xq_position'[1] === reg3 + 1))\
+              or (reg6 === reg2 - 1 and reg7 === reg3 + 2 and not reg1.exist(target.'xq_position'[0] === reg2 and target.'xq_position'[1] === reg3 + 1))\
+              or (reg6 === reg2 + 1 and reg7 === reg3 - 2 and not reg1.exist(target.'xq_position'[0] === reg2 and target.'xq_position'[1] === reg3 - 1))\
+              or (reg6 === reg2 - 1 and reg7 === reg3 - 2 and not reg1.exist(target.'xq_position'[0] === reg2 and target.'xq_position'[1] === reg3 - 1))\
+              or (reg6 === reg2 + 2 and reg7 === reg3 + 1 and not reg1.exist(target.'xq_position'[0] === reg2 + 1 and target.'xq_position'[1] === reg3))\
+              or (reg6 === reg2 - 2 and reg7 === reg3 + 1 and not reg1.exist(target.'xq_position'[0] === reg2 - 1 and target.'xq_position'[1] === reg3))\
+              or (reg6 === reg2 + 2 and reg7 === reg3 - 1 and not reg1.exist(target.'xq_position'[0] === reg2 + 1 and target.'xq_position'[1] === reg3))\
+              or (reg6 === reg2 - 2 and reg7 === reg3 - 1 and not reg1.exist(target.'xq_position'[0] === reg2 - 1 and target.'xq_position'[1] === reg3)))\
+            and not reg1.exist(target.'xq_piece_owner' == input1 and target.'xq_position'[0] === reg6 and target.'xq_position'[1] === reg7)
+elif reg5.'xq_piece_name' == 'xq_Xiang':
+    request reg6, reg7, s.t.{reg8}, provided:
+        reg8 &= reg6 == 'sys_integer'\
+            and reg7 == 'sys_integer'\
+            and reg6 >= 0\
+            and reg6 <= 8\
+            and ((input1 == 'xq_red_team' and reg7 >= 0 and reg7 <= 4)\
+              or (input1 != 'xq_red_team' and reg7 >= 5 and reg7 <= 9))\
+            and ((reg6 === reg2 + 2 and reg7 === reg3 + 2 and not reg1.exist(target.'xq_position'[0] === reg2 + 1 and target.'xq_position'[1] === reg3 + 1))\
+              or (reg6 === reg2 - 2 and reg7 === reg3 + 2 and not reg1.exist(target.'xq_position'[0] === reg2 - 1 and target.'xq_position'[1] === reg3 + 1))\
+              or (reg6 === reg2 + 2 and reg7 === reg3 - 2 and not reg1.exist(target.'xq_position'[0] === reg2 + 1 and target.'xq_position'[1] === reg3 - 1))\
+              or (reg6 === reg2 - 2 and reg7 === reg3 - 2 and not reg1.exist(target.'xq_position'[0] === reg2 - 1 and target.'xq_position'[1] === reg3 - 1)))\
+            and not reg1.exist(target.'xq_piece_owner' == input1 and target.'xq_position'[0] === reg6 and target.'xq_position'[1] === reg7)
+elif reg5.'xq_piece_name' == 'xq_Shi':
+    request reg6, reg7, s.t.{reg8}, provided:
+        reg8 &= reg6 == 'sys_integer'\
+            and reg7 == 'sys_integer'\
+            and reg6 >= 3\
+            and reg6 <= 5\
+            and ((input1 == 'xq_red_team' and reg7 >= 0 and reg7 <= 2)\
+              or (input1 != 'xq_red_team' and reg7 >= 7 and reg7 <= 9))\
+            and (reg6 === reg2 + 1 or reg6 === reg2 - 1)\
+            and (reg7 === reg3 + 1 or reg7 === reg3 - 1)\
+            and not reg1.exist(target.'xq_piece_owner' == input1 and target.'xq_position'[0] === reg6 and target.'xq_position'[1] === reg7)
+elif reg5.'xq_piece_name' == 'xq_Jiang':
+    request reg6, reg7, s.t.{reg8}, provided:
+        reg8 &= reg6 == 'sys_integer'\
+            and reg7 == 'sys_integer'\
+            and reg6 >= 0\
+            and reg6 <= 8\
+            and ((reg7 >= 0 and reg7 <= 2) or (reg7 >= 7 and reg7 <= 9))\
+            and ((reg6 === reg2 + 1 and reg7 === reg3)\
+              or (reg6 === reg2 - 1 and reg7 === reg3)\
+              or (reg6 === reg2 and reg7 === reg3 + 1)\
+              or (reg6 === reg2 and reg7 === reg3 - 1)\
+              or (reg1.find(target.'xq_position'[0] === reg6 and target.'xq_position'[1] === reg7).'xq_piece_name' == 'xq_Jiang'\
+               and reg1.find(target.'xq_position'[0] === reg6 and target.'xq_position'[1] === reg7).'xq_piece_owner' != input1\
+               and reg2 === reg6\
+               and not reg1.exist(target.'xq_position'[0] === reg2 and target.'xq_position'[1] > min(reg3, reg7) and target.'xq_position'[1] < max(reg3, reg7))))\
+            and not reg1.exist(target.'xq_piece_owner' == input1 and target.'xq_position'[0] === reg6 and target.'xq_position'[1] === reg7)
+elif reg5.'xq_piece_name' == 'xq_Pao':
+    request reg6, reg7, s.t.{reg8}, provided:
+        reg8 &= reg6 == 'sys_integer'\
+            and reg7 == 'sys_integer'\
+            and reg6 >= 0\
+            and reg6 <= 8\
+            and reg7 >= 0\
+            and reg7 <= 9\
+            and ((((reg6 === reg2 and reg7 =!= reg3 and not reg1.exist(target.'xq_position'[0] === reg2 and target.'xq_position'[1] > min(reg7, reg3) and target.'xq_position'[1] < max(reg7, reg3)))\
+                or (reg7 === reg3 and reg6 =!= reg2 and not reg1.exist(target.'xq_position'[1] === reg3 and target.'xq_position'[0] > min(reg6, reg2) and target.'xq_position'[0] < max(reg6, reg2))))\
+               and not reg1.exist(target.'xq_position'[0] === reg6 and target.'xq_position'[1] === reg7))\
+              or (((reg6 === reg2 and reg7 =!= reg3 and reg1.count(target.'xq_position'[0] === reg2 and target.'xq_position'[1] > min(reg7, reg3) and target.'xq_position'[1] < max(reg7, reg3)) === 1)\
+                or (reg7 === reg3 and reg6 =!= reg2 and reg1.count(target.'xq_position'[1] === reg3 and target.'xq_position'[0] > min(reg6, reg2) and target.'xq_position'[0] < max(reg6, reg2)) === 1))\
+               and reg1.exist(target.'xq_piece_owner' != input1 and target.'xq_position'[0] === reg6 and target.'xq_position'[1] === reg7)))\
+            and not reg1.exist(target.'xq_piece_owner' == input1 and target.'xq_position'[0] === reg6 and target.'xq_position'[1] === reg7)
+elif reg5.'xq_piece_name' == 'xq_Bing':
+    request reg6, reg7, s.t.{reg8}, provided:
+        reg8 &= reg6 == 'sys_integer'\
+            and reg7 == 'sys_integer'\
+            and reg6 >= 0\
+            and reg6 <= 8\
+            and reg7 >= 0\
+            and reg7 <= 9\
+            and ((input1 == 'xq_red_team' and ((reg6 === reg2 and reg7 === reg3 + 1)\
+                                             or (reg7 >= 5 and ((reg6 === reg2 - 1 and reg7 === reg3)\
+                                                                or (reg6 === (reg2 + 1) and reg7 === reg3)))))\
+                 or (input1 != 'xq_red_team' and ((reg6 === reg2 and reg7 === reg3 - 1)\
+                                             or (reg7 <= 4 and ((reg6 === reg2 - 1 and reg7 === reg3)\
+                                                                or (reg6 === (reg2 + 1) and reg7 === reg3))))))\
+            and not reg1.exist(target.'xq_piece_owner' == input1 and target.'xq_position'[0] === reg6 and target.'xq_position'[1] === reg7)
+else:
+    assert False
+if reg1.exist(target.'xq_piece_owner' != input1 and target.'xq_position'[0] === reg6 and target.'xq_position'[1] === reg7):
+    reg1.remove(target.'xq_piece_owner' != input1 and target.'xq_position'[0] === reg6 and target.'xq_position'[1] === reg7)
+reg5.'xq_position'[0] = reg6
+reg5.'xq_position'[1] = reg7
+if input1 == 'xq_red_team':
+    reg0.'xq_whose_turn' = 'xq_black_team'
+else:
+    reg0.'xq_whose_turn' = 'xq_red_team'
+return reg0
